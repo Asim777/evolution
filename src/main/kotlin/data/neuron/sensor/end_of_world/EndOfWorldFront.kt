@@ -6,13 +6,13 @@ import data.neuron.NeuronCategory
 import data.neuron.NumericalInputNeuron
 
 class EndOfWorldFront(
-    override var value: Double = -1.0,
+    override var value: Float = -1.0f,
     id: String = "EoWf",
     category: NeuronCategory = NeuronCategory.Sensor(
-        subCategory = NeuronCategory.SensorSubcategory.EndOfWorld
+        subCategory = NeuronCategory.SensorCategory.EndOfWorld
     )
 ) : NumericalInputNeuron(value, id, category) {
-    override fun evaluate(entity: Entity, worldSize: Int): Double {
+    override fun evaluate(entity: Entity, worldSize: Int): Float {
         value = with(entity) {
             when (direction) {
                 Direction.North -> if (coordinates.y - 5 < 0) coordinates.y * 0.25 else -1.0
@@ -24,7 +24,7 @@ class EndOfWorldFront(
                 } else -1.0
                 Direction.West -> if (coordinates.x - 5 < 0) coordinates.x * 0.25 else -1.0
             }
-        }
+        }.toFloat()
         return value
     }
 }

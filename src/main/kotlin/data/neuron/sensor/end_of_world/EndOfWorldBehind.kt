@@ -9,7 +9,7 @@ class EndOfWorldBehind(
     override var value: Double = -1.0,
     id: String = "EoWb",
     category: NeuronCategory = NeuronCategory.Sensor(
-        subCategory = NeuronCategory.SensorSubcategory.EndOfWorld
+        subCategory = NeuronCategory.SensorCategory.EndOfWorld
     )
 ) : NumericalInputNeuron(value, id, category) {
     override fun evaluate(entity: Entity, worldSize: Int): Double {

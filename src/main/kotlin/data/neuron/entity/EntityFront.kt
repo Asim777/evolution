@@ -10,7 +10,7 @@ class EntityFront(
     override var value: Double = -1.0,
     id: String = "Ef",
     category: NeuronCategory = NeuronCategory.Sensor(
-        subCategory = NeuronCategory.SensorSubcategory.Entity
+        subCategory = NeuronCategory.SensorCategory.Entity
     )
 ) : NumericalInputNeuron(value, id, category) {
     // TODO: Write tests for method

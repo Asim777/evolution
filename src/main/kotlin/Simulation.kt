@@ -1,7 +1,9 @@
 import data.*
 import data.entity.*
-import data.neuron.NeuronCategory
-import data.neuron.getNeurons
+import data.gene.Gene
+import data.gene.Genome
+import data.gene.NeuronConnection
+import data.neuron.*
 import data.random.RandomDataProvider
 import data.random.RandomDataProviderImpl
 import kotlin.collections.HashMap
@@ -42,7 +44,7 @@ class Simulation(private val worldParams: WorldParams) {
     }
 
     fun start() {
-        entities.forEach {entity ->
+        entities.forEach { entity ->
             entity.calculateFieldOfView(world)
             entity.evaluateInputData(worldParams.worldSize)
             entity.calculateOutput()
@@ -73,25 +75,28 @@ class Simulation(private val worldParams: WorldParams) {
         val innerNeurons = neurons.filter { it.category is NeuronCategory.Inner }
         val sinkNeurons = neurons.filter { it.category is NeuronCategory.Sink }
 
+        val inputNeurons : List<InputNeuron<out Any>> = sensorNeurons.plus(innerNeurons) as
+        val outputNeurons = sinkNeurons.plus(innerNeurons)
+
+
         // Create Gene pool
         for (i in 0 until worldParams.initialPopulation) {
-            val genome = mutableListOf<Gene>()
+            val neuronConnections = mutableListOf<NeuronConnection>()
+            val genes = mutableListOf<Gene>()
+            weight = randomDataProvider.getRandomFloat(2)
 
+            // TODO: Continue from here
             for (j in 0 until worldParams.genomeLength) {
                 // Create a gene and assign to the genome
-                genome.add(
-                    j,
-                    Gene(
-                        input = sensorNeurons.plus(innerNeurons).run {
-                            get(randomDataProvider.getRandomInteger(size))
-                        },
-                        output = sinkNeurons.plus(innerNeurons).run {
-                            get(randomDataProvider.getRandomInteger(size))
-                        },
-                        weight = randomDataProvider.getRandomFloat(2)
+                neuronConnections.add(
+                    NeuronConnection(
+                        input = inputNeurons[randomDataProvider.getRandomInteger(inputNeurons.size)],
+                        output = outputNeurons[randomDataProvider.getRandomInteger(outputNeurons.size)]
                     )
                 )
             }
+
+            val genome = Genome(neuronConnections.toTypedArray(), genes.toTypedArray())
 
             // Assign the genome to the Gene pool
             genePool.add(i, genome.toTypedArray())

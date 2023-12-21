@@ -13,56 +13,76 @@ import data.neuron.sink.turn.TurnLeft
 import data.neuron.sink.turn.TurnRight
 import java.lang.IllegalArgumentException
 
-sealed interface Neuron<T> {
+sealed interface Neuron {
     val id: String
     val category: NeuronCategory
 }
 
-sealed class NeuronCategory {
-    data class Sensor(val subCategory: SensorSubcategory) : NeuronCategory()
-    data class Inner(val subCategory: InnerSubcategory) : NeuronCategory()
-    data class Sink(val subCategory: SinkSubCategory) : NeuronCategory()
+abstract class InputNeuron<T> (
+   open val value: T
+) : Neuron {
+    abstract fun evaluate(entity: Entity, worldSize: Int) : T
+}
 
-    enum class SensorSubcategory {
+abstract class OutputNeuron(
+    open val sources: Array<InputNeuron<Any>>
+) : Neuron
+
+abstract class SensorNeuron<T> (
+    override val value: T,
+    open val sensorCategory: NeuronCategory.SensorCategory
+) : InputNeuron<T>(value)
+
+abstract class InputInnerNeuron<T> (
+    override val value: T,
+    open val innerCategory: NeuronCategory.InnerCategory
+) : InputNeuron<T>(value)
+
+abstract class OutputInnerNeuron<T> (
+    override val sources: Array<InputNeuron<Any>>,
+    open val innerCategory: NeuronCategory.InnerCategory
+) : OutputNeuron(sources)
+
+abstract class SinkNeuron (
+    override val sources: Array<InputNeuron<Any>>,
+    val sinkCategory: NeuronCategory.SinkCategory
+) : OutputNeuron(sources)
+
+class LogicalSensorNeuron(
+    override var value: Boolean,
+    override val id: String,
+    override val sensorCategory: NeuronCategory.SensorCategory
+) : SensorNeuron<Boolean>(value, sensorCategory) {
+    override fun evaluate(entity: Entity, worldSize: Int): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override val category: NeuronCategory
+        get() = TODO("Not yet implemented")
+
+}
+
+abstract class NumericalSensorNeuron(
+    override var value: Float,
+    override val id: String,
+    override val sensorCategory: NeuronCategory.SensorCategory
+) : SensorNeuron<Float>(value, sensorCategory)
+
+sealed class NeuronCategory {
+    enum class SensorCategory {
         EndOfWorld, Entity, Food, EntityDensity, Distance, GeneticSimilarity
     }
 
-    enum class InnerSubcategory {
+    enum class InnerCategory {
         Logical, Numerical
     }
 
-    enum class SinkSubCategory {
+    enum class SinkCategory {
         Movement, Turn, Eat, Mate
     }
 }
 
-abstract class LogicalInputNeuron(
-    open var value: Boolean,
-    override val id: String,
-    override val category: NeuronCategory,
-) : InputNeuron<Boolean>
-
-abstract class NumericalInputNeuron(
-    open var value: Float,
-    override val id: String,
-    override val category: NeuronCategory,
-) : InputNeuron<Float>
-
-interface InputNeuron<T> : Neuron<T> {
-    fun evaluate(entity: Entity, worldSize: Int): T
-}
-
-abstract class OutputNeuron(
-    override val id: String,
-    override val category: NeuronCategory
-) : Neuron<Coordinates?>
-
-abstract class ValuelessNeuron(
-    override val id: String,
-    override val category: NeuronCategory
-) : Neuron<Unit>
-
-fun getNeurons(numberOfNeurons: Int): List<Neuron<out Any?>> =
+fun getNeurons(numberOfNeurons: Int): List<Neuron> =
     when (numberOfNeurons) {
         9 -> listOf(
             EndOfWorldFront(),
@@ -73,7 +93,7 @@ fun getNeurons(numberOfNeurons: Int): List<Neuron<out Any?>> =
             TurnRight(),
             TurnLeft(),
             Eat(),
-            Mate(),
+            Mate()
         )
 
         19 -> getNeurons(9) + listOf(

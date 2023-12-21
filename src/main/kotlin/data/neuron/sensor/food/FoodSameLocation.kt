@@ -9,7 +9,7 @@ class FoodSameLocation(
     override var value: Boolean = false,
     id: String = "Fsl",
     category: NeuronCategory = NeuronCategory.Sensor(
-        subCategory = NeuronCategory.SensorSubcategory.Food
+        subCategory = NeuronCategory.SensorCategory.Food
     )
 ) : LogicalInputNeuron(value, id, category) {
     // TODO: Write tests for method

@@ -9,7 +9,7 @@ class EntityImmediateRight(
     override var value: Boolean = false,
     id: String = "Eir",
     category: NeuronCategory = NeuronCategory.Sensor(
-        subCategory = NeuronCategory.SensorSubcategory.Entity
+        subCategory = NeuronCategory.SensorCategory.Entity
     )
 ) : LogicalInputNeuron(value, id, category) {
     // TODO: Write tests for method
