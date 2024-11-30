@@ -6,7 +6,7 @@ import data.neuron.OutputNeuron
 
 class Gene(
     val sensor: InputNeuron<out Any>,
-    val inner: Neuron<out Any>,
+    val inner: Neuron,
     val sink: OutputNeuron,
     val weight: Float
 ) {

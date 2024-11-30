@@ -2,9 +2,9 @@ package data.neuron.sensor.food
 
 import data.entity.Entity
 import data.entity.getImmediateLeft
-import data.neuron.LogicalInputNeuron
 import data.neuron.NeuronCategory
 
+/*
 class FoodImmediateLeft(
     override var value: Boolean = false,
     id: String = "Fil",
@@ -19,4 +19,4 @@ class FoodImmediateLeft(
         }
         return value
     }
-}
+}*/

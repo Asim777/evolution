@@ -1,13 +1,13 @@
-package data.neuron.entity
+package data.neuron.sensor.entity
 
 import data.entity.Entity
-import data.entity.getLeft
-import data.neuron.LogicalInputNeuron
+import data.entity.getImmediateRight
 import data.neuron.NeuronCategory
 
-class EntityLeft(
+/*
+class EntityImmediateRight(
     override var value: Boolean = false,
-    id: String = "El",
+    id: String = "Eir",
     category: NeuronCategory = NeuronCategory.Sensor(
         subCategory = NeuronCategory.SensorCategory.Entity
     )
@@ -15,8 +15,8 @@ class EntityLeft(
     // TODO: Write tests for method
     override fun evaluate(entity: Entity, worldSize: Int): Boolean {
         value = with(entity) {
-            fieldOfView.getLeft().any { it?.hasEntity == true }
+            fieldOfView.getImmediateRight()?.hasEntity ?: false
         }
         return value
     }
-}
+}*/

@@ -2,9 +2,9 @@ package data.neuron.sensor.food
 
 import data.entity.Entity
 import data.entity.getFront
-import data.neuron.LogicalInputNeuron
 import data.neuron.NeuronCategory
 
+/*
 class FoodFront(
     override var value: Boolean = false,
     id: String = "Ff",
@@ -19,4 +19,4 @@ class FoodFront(
         }
         return value
     }
-}
+}*/

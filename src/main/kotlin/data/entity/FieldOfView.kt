@@ -43,7 +43,6 @@ fun FieldOfView.getBehind() = listOf(bl, b, br)
 fun FieldOfView.getImmediateBehind() = b
 fun FieldOfView.getLeft() = listOf(bl, l, fl, f1l2, fl2, f2l3, f1l3, fl3, f3l4, f2l4, f1l4, fl4)
 fun FieldOfView.getImmediateLeft() = l
-fun FieldOfView.getSameLocation() = l
 fun FieldOfView.getAhead() = listOf(
     fl, f1, fr, fl2, f1l2, f2, f1r2, fr2, fl3, f1l3, f2l3, f3, f2r3, f1r3, fr3, fl4, f1l4, f2l4, f3l4, f4, f3r4,
     f2r4, f1r4, fr4

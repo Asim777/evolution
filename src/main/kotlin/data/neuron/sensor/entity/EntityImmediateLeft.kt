@@ -1,20 +1,22 @@
-package data.neuron.entity
+package data.neuron.sensor.entity
 
 import data.entity.Entity
-import data.entity.getImmediateFront
-import data.neuron.LogicalInputNeuron
+import data.entity.getImmediateLeft
 import data.neuron.NeuronCategory
 
-class EntityImmediateFront(
+/*
+class EntityImmediateLeft(
     override var value: Boolean = false,
-    id: String = "Eif",
+    id: String = "Eil",
     category: NeuronCategory = NeuronCategory.Sensor(
         subCategory = NeuronCategory.SensorCategory.Entity
     )
 ) : LogicalInputNeuron(value, id, category) {
     // TODO: Write tests for method
     override fun evaluate(entity: Entity, worldSize: Int): Boolean {
-        value = entity.fieldOfView.getImmediateFront()?.hasEntity ?: false
+        value = with(entity) {
+            fieldOfView.getImmediateLeft()?.hasEntity ?: false
+        }
         return value
     }
-}
+}*/

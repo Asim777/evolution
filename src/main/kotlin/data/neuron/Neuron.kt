@@ -2,85 +2,107 @@ package data.neuron
 
 import data.*
 import data.entity.*
-import data.neuron.entity.*
+import data.neuron.sensor.entity.EntityImmediateFront
 import data.neuron.sensor.end_of_world.EndOfWorldFront
 import data.neuron.sensor.food.FoodImmediateFront
-import data.neuron.sensor.food.FoodSameLocation
-import data.neuron.sink.eat.Eat
-import data.neuron.sink.mate.Mate
 import data.neuron.sink.movement.MoveForward
-import data.neuron.sink.turn.TurnLeft
-import data.neuron.sink.turn.TurnRight
 import java.lang.IllegalArgumentException
 
-sealed interface Neuron {
+/** Interface for all neurons
+ *
+ * @property id String : unique id of the Neuron, example "EoWf" for "End of World in Front"
+ * @property category NeuronCategory : category of the neuron
+ */
+interface Neuron {
     val id: String
     val category: NeuronCategory
 }
 
-abstract class InputNeuron<T> (
-   open val value: T
-) : Neuron {
-    abstract fun evaluate(entity: Entity, worldSize: Int) : T
+// region Input, Output Neurons
+/**
+ * Interface for all Input Neurons. Input Neurons are Neurons that provide some information to the Output Neurons
+ *
+ * @property value T : the value of the observed property. It can be boolean for Logical Input Neurons and integer
+ * for Numerical Input Neurons
+ */
+interface InputNeuron : Neuron {
+    // TODO: We probably don't need to save value as property. We get a newly calculated value every
+    //  time evaluate is called
+    val value: Float
+    /*val type: NeuronType*/
+    fun evaluate(entity: Entity, worldSize: Int): Float
 }
 
-abstract class OutputNeuron(
-    open val sources: Array<InputNeuron<Any>>
-) : Neuron
+/**
+ * Interface for all Output Neurons. Output Neurons are [Neuron]s that receive some information from the [InnerNeuron]s
+ *
+ * @property sources Array<InputNeuron<Any> : the list of the sources that contribute information to this output neuron
+ */
+interface OutputNeuron : Neuron {
+    val sources: Array<InputNeuron>
 
-abstract class SensorNeuron<T> (
-    override val value: T,
-    open val sensorCategory: NeuronCategory.SensorCategory
-) : InputNeuron<T>(value)
+    fun getExcitementValue() : Float
+}
+// endregion
 
-abstract class InputInnerNeuron<T> (
-    override val value: T,
-    open val innerCategory: NeuronCategory.InnerCategory
-) : InputNeuron<T>(value)
-
-abstract class OutputInnerNeuron<T> (
-    override val sources: Array<InputNeuron<Any>>,
-    open val innerCategory: NeuronCategory.InnerCategory
-) : OutputNeuron(sources)
-
-abstract class SinkNeuron (
-    override val sources: Array<InputNeuron<Any>>,
-    val sinkCategory: NeuronCategory.SinkCategory
-) : OutputNeuron(sources)
-
-class LogicalSensorNeuron(
-    override var value: Boolean,
+// region Sensor, Inner, Sink Neurons
+/**
+ * Base class for all Sensor Neurons. Sensor Neurons are [Neuron]s that observe some information from the World.
+ * Sensor Neurons provide input to some Inner or [SinkNeuron]
+ *
+ *  @property value T : the value of the observed property. It can be boolean for Logical Input Neurons and integer
+ *  for Numerical Input Neurons
+ *  @property id String : unique id of the Neuron, example "EoWf" for "End of World in Front"
+ *  @property category [SensorCategory] : category of the Sensor neuron
+ */
+abstract class SensorNeuron(
     override val id: String,
-    override val sensorCategory: NeuronCategory.SensorCategory
-) : SensorNeuron<Boolean>(value, sensorCategory) {
-    override fun evaluate(entity: Entity, worldSize: Int): Boolean {
-        TODO("Not yet implemented")
-    }
+    override val category: SensorCategory,
+    // TODO: We probably don't need to save value as property. We get a newly calculated value every
+    //  time evaluate is called
+    override val value: Float,
+    /*override val type: NeuronType*/
+) : InputNeuron
 
-    override val category: NeuronCategory
-        get() = TODO("Not yet implemented")
-
-}
-
-abstract class NumericalSensorNeuron(
-    override var value: Float,
+/**
+ * Base class for all Inner Neurons. Inner Neurons are [Neuron]s that are associated with some logical or mathematical
+ * operation and serve as part of the rule that connects [SensorNeuron]s and [SinkNeuron]s.
+ * Input Inner Neurons provide input for some [SinkNeuron]. Output Inner Neurons receive input from some [SensorNeuron].
+ *
+ *  @property value T : the value of the observed property. It can be boolean for Logical Input Neurons and integer
+ *  for Numerical Input Neurons
+ *  @property id String : unique id of the Neuron, example "EoWf" for "End of World in Front"
+ *  @property category SensorCategory : category of the Inner Neuron
+ */
+abstract class InnerNeuron(
     override val id: String,
-    override val sensorCategory: NeuronCategory.SensorCategory
-) : SensorNeuron<Float>(value, sensorCategory)
+    override val category: InnerCategory,
+    override val value: Float,
+    override val sources: Array<InputNeuron>,
+    /*override val type: NeuronType*/
+) : InputNeuron, OutputNeuron
 
-sealed class NeuronCategory {
-    enum class SensorCategory {
-        EndOfWorld, Entity, Food, EntityDensity, Distance, GeneticSimilarity
-    }
+/**
+ * Base class for all Sink Neurons. Sink Neurons are [Neuron]s that execute some action
+ * Sink Neurons receive input from some Sensor or [InnerNeuron]
+ *
+ *  @property sources Array<InputNeuron<Any> : the list of the sources that contribute information to this output neuron
+ *  @property id String : unique id of the Neuron, example "EoWf" for "End of World in Front"
+ *  @property category SinkCategory : category of the Sink neuron
+ */
+abstract class SinkNeuron(
+    override val id: String,
+    override val category: SinkCategory,
+    override val sources: Array<InputNeuron>
+) : OutputNeuron
+// endregion
 
-    enum class InnerCategory {
-        Logical, Numerical
-    }
-
-    enum class SinkCategory {
-        Movement, Turn, Eat, Mate
-    }
-}
+//TODO: Rethink whether we need this categorization. When we evaluate excitement in Sink neurons,
+// we convert true to 1.0f and false to 0.0f anyway
+/*enum class NeuronType {
+    Logical,
+    Numerical
+}*/
 
 fun getNeurons(numberOfNeurons: Int): List<Neuron> =
     when (numberOfNeurons) {
@@ -88,12 +110,11 @@ fun getNeurons(numberOfNeurons: Int): List<Neuron> =
             EndOfWorldFront(),
             EntityImmediateFront(),
             FoodImmediateFront(),
-            FoodSameLocation(),
             MoveForward(),
-            TurnRight(),
+            /*TurnRight(),
             TurnLeft(),
             Eat(),
-            Mate()
+            Mate()*/
         )
 
         19 -> getNeurons(9) + listOf(
@@ -174,9 +195,9 @@ fun getNeuronDistributionByCategory(numberOfNeurons: Int): NumberOfNeurons =
         .run {
             NumberOfNeurons(
                 total = numberOfNeurons,
-                sensorNeurons = find { it.first == NeuronCategory.Sensor::class.java.canonicalName }?.second ?: 0,
-                innerNeurons = find { it.first == NeuronCategory.Inner::class.java.canonicalName }?.second ?: 0,
-                sinkNeurons = find { it.first == NeuronCategory.Sink::class.java.canonicalName }?.second ?: 0,
+                sensorNeurons = find { it.first == SensorCategory::class.java.canonicalName }?.second ?: 0,
+                innerNeurons = find { it.first == InnerCategory::class.java.canonicalName }?.second ?: 0,
+                sinkNeurons = find { it.first == SinkCategory::class.java.canonicalName }?.second ?: 0,
             )
         }
 

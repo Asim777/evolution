@@ -3,8 +3,8 @@ package data.neuron.sensor.end_of_world
 import data.entity.Direction
 import data.entity.Entity
 import data.neuron.NeuronCategory
-import data.neuron.NumericalInputNeuron
 
+/*
 class EndOfWorldRight(
     override var value: Double = -1.0,
     id: String = "EoWr",
@@ -27,4 +27,4 @@ class EndOfWorldRight(
         }
         return value
     }
-}
+}*/

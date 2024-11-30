@@ -3,12 +3,7 @@ package data.entity
 import androidx.compose.ui.graphics.Color
 import data.Cell
 import data.Coordinates
-import data.gene.Gene
 import data.gene.Genome
-import data.neuron.*
-import java.lang.IllegalStateException
-import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 data class Entity(
@@ -20,9 +15,15 @@ data class Entity(
     var fieldOfView: FieldOfView,
     var age: Int,
     var energy: Int,
+    /**
+     * Hunger is a measure of Entity's desire to eat. 100 means starving, 0 means full
+     */
     var hunger: Int,
     //var thirst: Int,
-    var sexualDrive: Int,
+    /**
+     * Mating Drive is a measure of Entity's desire to mate. 100 means extremely horny, 0 means no desire to mate at all
+     */
+    var matingDrive: Int,
     //var sleepiness: Int
 ) {
     override fun equals(other: Any?): Boolean {
@@ -53,12 +54,9 @@ data class Entity(
         result = 31 * result + age
         result = 31 * result + energy
         result = 31 * result + hunger
-        result = 31 * result + sexualDrive
+        result = 31 * result + matingDrive
         return result
     }
-
-    // Get relative coordinates
-    // TODO: Write tests for methods in this block
 
 
     //TODO: Write JavaDoc
@@ -103,35 +101,31 @@ data class Entity(
 }
 
 fun Entity.evaluateInputData(worldSize: Int) {
-    val outputNeuronsAndWeights: HashMap<OutputNeuron, Float> = hashMapOf()
+    /*val outputNeuronsAndWeights: HashMap<OutputNeuron, Float> = hashMapOf()
 
-    genome.genes.forEach { gene ->
-        // Do not evaluate useless genes that can't possibly result in action
-        if (gene.input.category is NeuronCategory.Sensor || gene.input.category is NeuronCategory.Inner) {
+    genome.connections.forEach { neuronConnection ->
+        // TODO: Do not evaluate useless connections that can't possibly result in genes
 
-            // TODO: Refactor to remove duplication
-            if (gene.input is LogicalInputNeuron) {
-                gene.input.value = gene.input.evaluate(this@evaluateInputData, worldSize)
-            }
-            if (gene.input is NumericalInputNeuron) {
-                gene.input.value = gene.input.evaluate(this@evaluateInputData, worldSize)
-            }
-            outputNeuronsAndWeights[gene.output] = gene.weight
-        } else {
-            throw IllegalStateException("Sink neuron is assigned to Gene input")
+        // TODO: Refactor to remove duplication
+        if (neuronConnection.input is LogicalInputNeuron) {
+            gene.input.value = gene.input.evaluate(this@evaluateInputData, worldSize)
         }
+        if (gene.input is NumericalInputNeuron) {
+            gene.input.value = gene.input.evaluate(this@evaluateInputData, worldSize)
+        }
+        outputNeuronsAndWeights[gene.output] = gene.weight
     }
     // Find the [OutputNeuron] with the highest weight to perform that [OutputNeuron]'s action
-    val selectedOutputNeuron = outputNeuronsAndWeights.maxBy { it.value }.key
+    val selectedOutputNeuron = outputNeuronsAndWeights.maxBy { it.value }.key*/
 }
 
-private fun calculateOutput(outputCalculationData: ArrayList<Entity.OutputCalculationData>): OutputNeuron {
+/*private fun calculateOutput(outputCalculationData: ArrayList<Entity.OutputCalculationData>): OutputNeuron {
     return outputNeuronsAndWeights.maxBy { it.value }.key
-}
+}*/
 
 fun Entity.performAction() {
-    val sinkWeights =
+/*    val sinkWeights =
         genome.forEach { gene ->
 
-        }
+        }*/
 }

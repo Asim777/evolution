@@ -1,11 +1,11 @@
-package data.neuron.entity
+package data.neuron.sensor.entity
 
 import data.entity.Direction
 import data.entity.Entity
 import data.entity.getFront
 import data.neuron.NeuronCategory
-import data.neuron.NumericalInputNeuron
 
+/*
 class EntityFront(
     override var value: Double = -1.0,
     id: String = "Ef",
@@ -30,4 +30,4 @@ class EntityFront(
         }
         return value
     }
-}
+}*/

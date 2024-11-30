@@ -11,49 +11,12 @@ class Cell(
 )
 
 data class Coordinates(
+    // Re[
     val x: Int,
     val y: Int
 ) {
-    // Get geographical coordinates
-    private fun getNorth(step: Int) =
-        if (y > step - 1) {
-            copy(y = y - step)
-        } else null
-
-    private fun getNorthEast(step: Int, worldSize: Int) =
-        if (x < worldSize - step && y > step - 1) {
-            copy(x = x + step, y = y - step)
-        } else null
-
-    private fun getNorthWest(step: Int) =
-        if (x > step - 1 && y > step - 1) {
-            copy(x = x - step, y = y - step)
-        } else null
-
-    private fun getEast(step: Int, worldSize: Int) =
-        if (x < worldSize - step) {
-            copy(x = x + step)
-        } else null
-
-    private fun getSouth(step: Int, worldSize: Int) =
-        if (y < worldSize - step) {
-            copy(y = y + step)
-        } else null
-
-    private fun getSouthEast(step: Int, worldSize: Int) =
-        if (x < worldSize - step && y < worldSize - step) {
-            copy(x = x + step, y = y + step)
-        } else null
-
-    private fun getSouthWest(step: Int, worldSize: Int) =
-        if (x > step - 1 && y < worldSize - step) {
-            copy(x = x - step, y = y + step)
-        } else null
-
-    private fun getWest(step: Int) =
-        if (x > step - 1) {
-            copy(x = x - step)
-        } else null
+    //TODO: Write tests for these methods
+    // <editor-fold desc="Relative coordinates">
 
     // Get relative coordinates
     fun getFrontCoord(step: Int, direction: Direction, worldSize: Int) =
@@ -120,6 +83,53 @@ data class Coordinates(
             Direction.South -> getSouthEast(step, worldSize)
             Direction.West -> getSouthWest(step, worldSize)
         }
+    // </editor-fold>
+
+    // <editor-fold desc="Geographical coordinates">
+
+    // Geographical coordinates
+    private fun getNorth(step: Int) =
+        if (y > step - 1) {
+            copy(y = y - step)
+        } else null
+
+    private fun getNorthEast(step: Int, worldSize: Int) =
+        if (x < worldSize - step && y > step - 1) {
+            copy(x = x + step, y = y - step)
+        } else null
+
+    private fun getEast(step: Int, worldSize: Int) =
+        if (x < worldSize - step) {
+            copy(x = x + step)
+        } else null
+
+    private fun getSouthEast(step: Int, worldSize: Int) =
+        if (x < worldSize - step && y < worldSize - step) {
+            copy(x = x + step, y = y + step)
+        } else null
+
+    private fun getSouth(step: Int, worldSize: Int) =
+        if (y < worldSize - step) {
+            copy(y = y + step)
+        } else null
+
+
+    private fun getSouthWest(step: Int, worldSize: Int) =
+        if (x > step - 1 && y < worldSize - step) {
+            copy(x = x - step, y = y + step)
+        } else null
+
+    private fun getWest(step: Int) =
+        if (x > step - 1) {
+            copy(x = x - step)
+        } else null
+
+    private fun getNorthWest(step: Int) =
+        if (x > step - 1 && y > step - 1) {
+            copy(x = x - step, y = y - step)
+        } else null
+
+    //</editor-fold>
 }
 
 /* TODO: Remove if not used
