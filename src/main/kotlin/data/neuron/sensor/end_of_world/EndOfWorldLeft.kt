@@ -5,6 +5,7 @@ import data.neuron.RelativeDirection
 import data.neuron.SensorCategory
 import data.neuron.SensorNeuron
 
+/*
 class EndOfWorldLeft(
     id: String = "EoWl",
     category: SensorCategory = SensorCategory.EndOfWorld,
@@ -22,3 +23,4 @@ class EndOfWorldLeft(
             entity.coordinates.y * 0.25f
         } else -1.0f
 }
+*/

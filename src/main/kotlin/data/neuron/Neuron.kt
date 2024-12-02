@@ -5,7 +5,11 @@ import data.entity.*
 import data.neuron.sensor.entity.EntityImmediateFront
 import data.neuron.sensor.end_of_world.EndOfWorldFront
 import data.neuron.sensor.food.FoodImmediateFront
+import data.neuron.sink.eat.Eat
+import data.neuron.sink.mate.Mate
 import data.neuron.sink.movement.MoveForward
+import data.neuron.sink.turn.TurnLeft
+import data.neuron.sink.turn.TurnRight
 import java.lang.IllegalArgumentException
 
 /** Interface for all neurons
@@ -26,11 +30,9 @@ interface Neuron {
  * for Numerical Input Neurons
  */
 interface InputNeuron : Neuron {
-    // TODO: We probably don't need to save value as property. We get a newly calculated value every
-    //  time evaluate is called
     val value: Float
     /*val type: NeuronType*/
-    fun evaluate(entity: Entity, worldSize: Int): Float
+    fun evaluate(entity: Entity, worldSize: Int)
 }
 
 /**
@@ -41,6 +43,11 @@ interface InputNeuron : Neuron {
 interface OutputNeuron : Neuron {
     val sources: Array<InputNeuron>
 
+    /**
+     * Returns calculated excitementValue of the Output Neuron. If we have multiple Outputs of the same category,
+     * with mutually exclusive actions, for instance, [MoveForward] and [MoveLeft], then the Neuron with the highest
+     * excitementValue will get its action executed
+     */
     fun getExcitementValue() : Float
 }
 // endregion
@@ -94,7 +101,9 @@ abstract class SinkNeuron(
     override val id: String,
     override val category: SinkCategory,
     override val sources: Array<InputNeuron>
-) : OutputNeuron
+) : OutputNeuron {
+    override fun getExcitementValue(): Float = sources.map { it.value }.sum()
+}
 // endregion
 
 //TODO: Rethink whether we need this categorization. When we evaluate excitement in Sink neurons,
@@ -111,10 +120,10 @@ fun getNeurons(numberOfNeurons: Int): List<Neuron> =
             EntityImmediateFront(),
             FoodImmediateFront(),
             MoveForward(),
-            /*TurnRight(),
+            TurnRight(),
             TurnLeft(),
             Eat(),
-            Mate()*/
+            Mate()
         )
 
         19 -> getNeurons(9) + listOf(

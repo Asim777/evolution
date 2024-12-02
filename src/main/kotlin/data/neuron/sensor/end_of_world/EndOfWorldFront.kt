@@ -11,7 +11,7 @@ class EndOfWorldFront(
     override var value: Float = 0.0f
 ) : SensorNeuron(id, category, value) {
     // TODO: Write tests for method
-    override fun evaluate(entity: Entity, worldSize: Int): Float {
+    override fun evaluate(entity: Entity, worldSize: Int) {
         if (
             SensorCategory.EndOfWorld.isEndOfWorld(
                 RelativeDirection.Front,
@@ -23,6 +23,5 @@ class EndOfWorldFront(
             val distanceToEndOfWorld = SensorCategory.EndOfWorld.getDistanceToEndOfWorld(entity, worldSize)
             value = 1 / distanceToEndOfWorld
         }
-        return value
     }
 }

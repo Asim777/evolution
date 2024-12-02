@@ -113,11 +113,10 @@ class Simulation(private val worldParams: WorldParams) {
                 }
                 val output = outputList[randomDataProvider.getRandomInteger(outputList.size)]
 
-                if (input is InputNeuron<*> && output is OutputNeuron) {
-                    @Suppress("UNCHECKED_CAST")
+                if (input is InputNeuron && output is OutputNeuron) {
                     neuronConnections.add(
                         NeuronConnection(
-                            input = input as InputNeuron<Any>,
+                            input = input,
                             output = output
                         )
                     )
@@ -153,8 +152,8 @@ class Simulation(private val worldParams: WorldParams) {
                     fieldOfView = FieldOfView(),
                     age = 0,
                     energy = 100,
-                    satiety = 0,
-                    sexualDrive = 0
+                    hunger = 100,
+                    matingDrive =100
                 )
             )
             // Update world with new entity cell coordinate

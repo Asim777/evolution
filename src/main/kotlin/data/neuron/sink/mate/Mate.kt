@@ -1,12 +1,9 @@
 package data.neuron.sink.mate
 
-import data.neuron.NeuronCategory
-import data.neuron.OutputNeuron
+import data.neuron.*
 
-/*
 class Mate(
-    id: String = "E",
-    category: NeuronCategory = NeuronCategory.Sink(
-        subCategory = NeuronCategory.SinkSubCategory.Eat
-    )
-) : OutputNeuron(id, category)*/
+    id: String = "M",
+    category: SinkCategory = SinkCategory.Mate,
+    override val sources: Array<InputNeuron> = arrayOf()
+) : SinkNeuron(id, category, sources)

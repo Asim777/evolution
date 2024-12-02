@@ -1,12 +1,9 @@
 package data.neuron.sink.eat
 
-import data.neuron.NeuronCategory
-import data.neuron.OutputNeuron
+import data.neuron.*
 
-/*
 class Eat(
     id: String = "E",
-    category: NeuronCategory = NeuronCategory.Sink(
-        subCategory = NeuronCategory.SinkSubCategory.Eat
-    )
-) : OutputNeuron(id, category)*/
+    category: SinkCategory = SinkCategory.Eat,
+    override val sources: Array<InputNeuron> = arrayOf()
+) : SinkNeuron(id, category, sources)

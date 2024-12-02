@@ -41,7 +41,7 @@ data class Entity(
         if (age != other.age) return false
         if (energy != other.energy) return false
         if (hunger != other.hunger) return false
-        return sexualDrive == other.sexualDrive
+        return matingDrive == other.matingDrive
     }
 
     override fun hashCode(): Int {
