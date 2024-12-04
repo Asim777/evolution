@@ -90,12 +90,12 @@ abstract class InnerNeuron(
 ) : InputNeuron, OutputNeuron
 
 /**
- * Base class for all Sink Neurons. Sink Neurons are [Neuron]s that execute some action
- * Sink Neurons receive input from some Sensor or [InnerNeuron]
+ * Base class for all Sink Neurons. Sink Neurons are [Neuron]s that execute some action.
+ * They receive input from some [SensorNeuron] or [InnerNeuron]
  *
- *  @property sources Array<InputNeuron<Any> : the list of the sources that contribute information to this output neuron
+ *  @property sources Array : the array of the sources that contribute information to this output neuron
  *  @property id String : unique id of the Neuron, example "EoWf" for "End of World in Front"
- *  @property category SinkCategory : category of the Sink neuron
+ *  @property category SinkCategory : category of the Sink Neuron
  */
 abstract class SinkNeuron(
     override val id: String,

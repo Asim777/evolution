@@ -24,6 +24,17 @@ data class Entity(
      * Mating Drive is a measure of Entity's desire to mate. 100 means extremely horny, 0 means no desire to mate at all
      */
     var matingDrive: Int,
+    /**
+     * Number of Entity's generation. Goes up by one every time Entity's mate and create a new one
+     */
+    val generation: Int,
+    /**
+     * Number of Mutations in Entity's ancestry. Goes up by one every time Entity's mate and create a new one and
+     * mutation occurs in the process
+     */
+    val ancestralMutationCount: Int
+    //val geneticHungerCoefficient,
+    //val geneticMatingDriveCoefficient,
     //var sleepiness: Int
 ) {
     override fun equals(other: Any?): Boolean {
