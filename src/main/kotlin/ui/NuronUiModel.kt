@@ -1,14 +1,11 @@
 package ui
 
+import androidx.compose.ui.geometry.Offset
+
 data class NeuronUiModel(
     val name: String,
     val isActive: Boolean,
-    var center: NeuronCoordinateUiModel? = null
-)
-
-data class NeuronCoordinateUiModel(
-    val x: Float,
-    val y: Float
+    var center: Offset? = null
 )
 
 fun getUiSensorNeurons() = listOf(

@@ -41,8 +41,7 @@ fun main() = application {
         MaterialTheme {
             CompositionLocalProvider(LocalContextMenuRepresentation provides contextMenuRepresentation) {
                 Surface(
-                    Modifier.fillMaxSize()
-                        .background(AppColors.Beige),
+                    Modifier.fillMaxSize().background(AppColors.Beige),
                 ) {
                     app()
                 }
@@ -155,33 +154,37 @@ fun app() {
         }
     ) {
         Scaffold {
+            println("Main.kt app after Scaffold")
             // Top pane with World, Controls, Simulation info and Analysis panel/Statistics panel
             Row {
                 // Left column containing World and Controls
                 Column(
                     modifier = Modifier
-                        .width(800.dp)
-                        .height(800.dp)
+                        .weight(1f)
                         .padding(24.dp)
                 ) {
                     // World
                     Row(
                         modifier = Modifier
                             .padding(top = 20.dp)
-                            .weight(1f)
                     ) {
-                        Canvas(modifier = Modifier.fillMaxSize()) {
+                        Canvas(modifier = Modifier.size(800.dp)) {
                             drawRect(color = AppColors.AshGray, size = size)
                         }
                     }
                     // Controls
-                    SimulationControls(simulationParams)
+                    Row (
+                        modifier = Modifier
+                            .padding(top = 20.dp)
+                    ) {
+                        SimulationControls(simulationParams)
+                    }
                 }
 
                 // Right column containing Information panel, Analysis panel and Statistics panel
                 Column(
                     modifier = Modifier
-                        .width(800.dp)
+                        .weight(1f)
                         .padding(24.dp)
                 ) {
                     // Simulation Information panel
@@ -197,7 +200,7 @@ fun app() {
                         }
 
                         // Genetic Information Panel
-                        Column(modifier = Modifier.weight(1.4f)) {
+                        Column(modifier = Modifier.weight(1.4f).widthIn(min = 500.dp)) {
                             GeneticInformationPanel()
                         }
                     }

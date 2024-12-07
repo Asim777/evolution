@@ -1,21 +1,23 @@
 package ui.analysis_panel
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import data.gene.Genome
 import domain.Simulation
 import offsetAt
 import ui.*
@@ -40,53 +42,66 @@ fun GeneticInformationPanel() {
         fontSize = 18.sp,
     )
 
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        // Border around the canvas
-        drawRect(
-            color = AppColors.TimberWorld,
-            size = size,
-            style = Stroke(width = 4.dp.toPx())
-        )
+    println("GeneticInformationPanel before Canvas")
 
-        val center = Offset(size.width / 2, size.height / 2)
+    Canvas(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer()
+            .drawWithCache {
+                onDrawBehind {
+                    println("GeneticInformationPanel after Canvas")
+                    // Border around the canvas
+                    drawRect(
+                        color = AppColors.TimberWorld,
+                        size = size,
+                        style = Stroke(width = 4.dp.toPx())
+                    )
 
-        // Define Radii for the concentric circles
-        val sensorRadius = size.minDimension / 2 * 0.8f
-        val innerRadius = sensorRadius * 0.7f
-        val sinkRadius = sensorRadius * 0.4f
+                    val center = Offset(size.width / 2, size.height / 2)
 
-        // Draw Sensor Neurons
-        drawNeurons(
-            getUiSensorNeurons(),
-            center,
-            sensorRadius,
-            AppColors.Finn,
-            textMeasurer,
-            shouldSpread = true
-        )
+                    // Define Radii for the concentric circles
+                    val sensorRadius = size.minDimension / 2 * 0.8f
+                    val innerRadius = sensorRadius * 0.7f
+                    val sinkRadius = sensorRadius * 0.4f
 
-        // Draw Inner Neurons
-        drawNeurons(
-            getUiInnerNeurons(),
-            center,
-            innerRadius,
-            AppColors.MidnightGreen,
-            textMeasurer,
-            shouldSpread = false
-        )
+                    // Draw Sensor Neurons
+                    drawNeurons(
+                        getUiSensorNeurons().filter { it.isActive },
+                        center,
+                        sensorRadius,
+                        AppColors.Finn,
+                        textMeasurer,
+                        shouldSpread = false
+                    )
 
-        // Draw Sink Neurons
-        drawNeurons(
-            getUiSinkNeurons(),
-            center,
-            sinkRadius,
-            AppColors.AirForceBlue,
-            textMeasurer,
-            shouldSpread = false
-        )
+                    // Draw Inner Neurons
+                    drawNeurons(
+                        getUiInnerNeurons().filter { it.isActive },
+                        center,
+                        innerRadius,
+                        AppColors.MidnightGreen,
+                        textMeasurer,
+                        shouldSpread = false
+                    )
 
-        // Draw connections
-        drawConnections()
+                    // Draw Sink Neurons
+                    drawNeurons(
+                        getUiSinkNeurons().filter { it.isActive },
+                        center,
+                        sinkRadius,
+                        AppColors.AirForceBlue,
+                        textMeasurer,
+                        shouldSpread = false
+                    )
+
+                    // Draw connections
+                    drawConnections()
+                    println("GeneticInformationPanel drawn")
+                }
+            }
+    ) {
+
     }
 }
 
@@ -132,22 +147,17 @@ fun DrawScope.drawNeurons(
         )
 
         // Update the mutable state for this Neuron with Neuron circle center coordinates
-        neuronUiData[neuron.name]?.center = NeuronCoordinateUiModel(x = offset.x, y = offset.y)
+        neuronUiData[neuron.name]?.center = Offset(x = offset.x, y = offset.y)
     }
 }
 
 fun DrawScope.drawConnections() {
-    val genome = Simulation.selectedEntity.value?.genome ?: return
-
-    genome.connections.forEach { connection ->
-
+    Simulation.selectedEntity.value?.genome?.connections?.forEach { connection ->
         val inputNeuron = neuronUiData[connection.input.id]
         val outputNeuron = neuronUiData[connection.output.id]
 
-        val inputCoordinates = inputNeuron?.center ?: return@forEach
-        val outputCoordinates = outputNeuron?.center ?: return@forEach
-        val inputCenter = Offset(inputCoordinates.x, inputCoordinates.y)
-        val outputCenter = Offset(outputCoordinates.x, outputCoordinates.y)
+        val inputCenter = inputNeuron?.center ?: return@forEach
+        val outputCenter = outputNeuron?.center ?: return@forEach
 
         // Drawing connection line between two Neurons
         val trimAmountPx = 20 * density

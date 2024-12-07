@@ -39,6 +39,8 @@ fun EntityListItem(
             color = AppColors.Beige,
             modifier = Modifier.weight(1f)
         )
+        println("Entity list item redrawn")
+
 
         IconButton(onClick = { onDelete(entity) }) {
             if (isSelected) {
