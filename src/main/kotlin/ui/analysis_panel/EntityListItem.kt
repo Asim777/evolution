@@ -1,0 +1,53 @@
+package ui.analysis_panel
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import data.entity.Entity
+import ui.AppColors
+
+@Composable
+fun EntityListItem(
+    entity: Entity,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    onDelete: (Entity) -> Unit
+) {
+    val backgroundColor = if (isSelected) AppColors.MidnightGreen else AppColors.AirForceBlue
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .background(backgroundColor)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = entity.id.toString(),
+            color = AppColors.Beige,
+            modifier = Modifier.weight(1f)
+        )
+
+        IconButton(onClick = { onDelete(entity) }) {
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = AppColors.AirForceBlue
+                )
+            }
+        }
+    }
+}

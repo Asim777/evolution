@@ -81,7 +81,7 @@ class RandomDataProviderImpl: RandomDataProvider {
         }
     }
 
-    //TODO: Delete if not needed in Simulation steps
+    //TODO: Delete if not needed in domain.Simulation steps
     /*fun getPseudoRandomNonOccupiedCoordinateWithoutFood(
         worldSize: Int,
         world: HashMap<Int, HashMap<Int, Cell>>

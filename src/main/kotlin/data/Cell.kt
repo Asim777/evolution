@@ -134,7 +134,7 @@ data class Coordinates(
 
 /* TODO: Remove if not used
 // In the future we want to implement landscape that the entities will interact with, like swimming in water and
- climbing on rocks
+ climbing on rocks, or avoiding rocks
 enum class CellType {
     Land, Water, Rock
 }*/

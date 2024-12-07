@@ -33,6 +33,7 @@ data class Entity(
      * mutation occurs in the process
      */
     val ancestralMutationCount: Int
+    //val entityType: EntityType
     //val geneticHungerCoefficient,
     //val geneticMatingDriveCoefficient,
     //var sleepiness: Int
@@ -140,3 +141,11 @@ fun Entity.performAction() {
 
         }*/
 }
+
+// In future we want to implement different types of Entities
+/*
+enum class EntityType {
+    Herbivore,
+    Carnivore,
+    Omnivore
+}*/

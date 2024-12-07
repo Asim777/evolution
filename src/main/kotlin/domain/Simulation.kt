@@ -1,3 +1,7 @@
+package domain
+
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import data.*
 import data.entity.*
 import data.gene.Gene
@@ -9,17 +13,56 @@ import data.random.RandomDataProviderImpl
 import kotlin.collections.HashMap
 import kotlin.math.pow
 
-class Simulation(private val worldParams: WorldParams) {
+object Simulation : ISimulation {
 
+    private const val FOOD_AVAILABILITY_COEFFICIENT = 0.4
+
+    // World state
     private val world = hashMapOf<Int, HashMap<Int, Cell>>()
     private val genePool = mutableListOf<Genome>()
     private val entities = mutableListOf<Entity>()
+
+    // Simulation stats state. Only update once at the end of every Simulation step
+    var timeElapsed : MutableState<Int> = mutableStateOf(0)
+    var numberOfSpecies : MutableState<Int> = mutableStateOf(0)
+    var population : MutableState<Int> = mutableStateOf(0)
+    var numberOfFood : MutableState<Int> = mutableStateOf(0)
+    // TODO: Update from user input
+    var simulationSpeed : MutableState<SimulationSpeed> = mutableStateOf(SimulationSpeed.Normal)
+
+    // State for entities and selected item
+    var selectedEntityList : MutableState<List<Entity>> = mutableStateOf(emptyList())
+    var selectedEntity : MutableState<Entity?> = mutableStateOf(null)
+
+    private var simulationParams: SimulationParams = SimulationParams(
+        worldSize = 1000,
+        initialPopulation = 1000,
+        foodAvailability = 0.5f,
+        mutationRate = 0.01f,
+        NumberOfNeurons(
+            total = 9,
+            sensorNeurons = 4,
+            innerNeurons = 0,
+            sinkNeurons = 5
+        ),
+        genomeLength = 4
+    )
+
     private val randomDataProvider: RandomDataProvider by lazy { RandomDataProviderImpl() }
+
+    // This fields should track number of food at the World at any given moment. Add to it when new food is placed.
+    // Subtract from it when any food is eaten. It's value will be assigned to numberOfFood MutableState variable at the
+    // end of each run
+    private var foodCounter = 0
 
     /**
      * Set up the simulation
      */
-    fun setup() {
+    // TODO: It should run in a separate Simulation thread
+    override fun setup(simulationParams: SimulationParams) {
+
+        this.simulationParams = simulationParams
+
         createWorld()
         createInitialGenePool()
         placeInitialEntities()
@@ -29,46 +72,88 @@ class Simulation(private val worldParams: WorldParams) {
 
         //TODO: For logging purposes only. Delete lines below when we have visual output
         val worldColumns = world.values
-        val numberOfFood = worldColumns.flatMap {
+        val numberOfFoodLog = worldColumns.flatMap {
             it.values.filter { cell -> cell.hasFood }
         }.size
-        val numberOfEntities = worldColumns.flatMap {
+        val numberOfEntitiesLog = worldColumns.flatMap {
             it.values.filter { cell -> cell.hasEntity }
         }.size
-        val numberOfCellsWithEntitiesAndFood = worldColumns.flatMap {
+        val numberOfCellsWithEntitiesAndFoodLog = worldColumns.flatMap {
             it.values.filter { cell -> cell.hasFood && cell.hasEntity }
         }.size
         println(
             "Setup Finished, " +
-                    "number of entities: $numberOfEntities, " +
-                    "number of food: $numberOfFood, " +
-                    "number of cells with entities and food: $numberOfCellsWithEntitiesAndFood"
+                    "number of entities: $numberOfEntitiesLog, " +
+                    "number of food: $numberOfFoodLog, " +
+                    "number of cells with entities and food: $numberOfCellsWithEntitiesAndFoodLog"
         )
+
+        // Updating state variables
+        numberOfSpecies.value = calculateNumberOfSpecies()
+        population.value = entities.size
+        numberOfFood.value = foodCounter
+
+        // Updating selected entities
+        updateSample()
     }
 
     /**
-     * Start the simulation for given number of step
+     * Run the simulation for given number of steps
      */
-    fun start() {
-        //TODO: Run this in a loop for given number of steps
+    // TODO: It should run in a separate Simulation thread
+    override fun run() {
         entities.forEach { entity ->
             entity.calculateFieldOfView(world)
-            entity.evaluateInputData(worldParams.worldSize)
+            entity.evaluateInputData(simulationParams.worldSize)
             /*entity.calculateOutput()*/
             entity.performAction()
-            println("Run finished for entity: " + entity.id)
+            println("Simulation step finished for entity: " + entity.id)
         }
-        println("Run finished")
+        println("Simulation step finished")
+
+        // Updating state variables
+        timeElapsed.value++
+        numberOfSpecies.value = calculateNumberOfSpecies()
+        population.value = entities.size
+        numberOfFood.value = foodCounter
+
+        // Controlling the speed of the Simulation
+        Thread.sleep(1000 / simulationSpeed.value.ordinal.toLong())
     }
 
-    //<editor-fold desc="Simulation Setup">
+    override fun setFoodAvailability(foodAvailability: Float) {
+        simulationParams.foodAvailability = foodAvailability
+    }
+
+    override fun setMutationRate(mutationRate: Float) {
+        simulationParams.mutationRate = mutationRate
+    }
+
+    override fun setSpeed(speed: SimulationSpeed) {
+        simulationSpeed.value = speed
+    }
+
+    override fun onSampleClicked() {
+        updateSample()
+    }
+
+    override fun getGenePool(): List<Genome> {
+        return genePool.toList()
+    }
+
+    override fun getSimulationParams(): SimulationParams = simulationParams
+    override fun getEntities(): List<Entity> {
+        return entities
+    }
+
+    //<editor-fold desc="domain.Simulation Setup">
     /**
      * Creates a 2D grid of Cells that represents the World where the Entities will live
      */
     private fun createWorld() {
-        for (column in 0 until worldParams.worldSize) {
+        for (column in 0 until simulationParams.worldSize) {
             world[column] = hashMapOf()
-            for (row in 0 until worldParams.worldSize) {
+            for (row in 0 until simulationParams.worldSize) {
                 world[column]?.set(
                     key = row,
                     value = Cell(
@@ -87,14 +172,14 @@ class Simulation(private val worldParams: WorldParams) {
      */
     private fun createInitialGenePool() {
         // Create Neurons
-        val neurons = getNeurons(worldParams.numberOfNeurons.total)
+        val neurons = getNeurons(simulationParams.numberOfNeurons.total)
 
         val sensorNeurons = neurons.filter { it.category is SensorCategory }
         val innerNeurons = neurons.filter { it.category is InnerCategory }
         val sinkNeurons = neurons.filter { it.category is SinkCategory }
 
         // Create Gene pool
-        for (i in 0 until worldParams.initialPopulation) {
+        for (i in 0 until simulationParams.initialPopulation) {
             val neuronConnections = getNeuronConnections(sensorNeurons, innerNeurons, sinkNeurons)
             val genes = mutableListOf<Gene>()
 
@@ -183,7 +268,7 @@ class Simulation(private val worldParams: WorldParams) {
     ): MutableList<NeuronConnection> {
         val neuronConnections = mutableListOf<NeuronConnection>()
 
-        for (j in 0 until worldParams.genomeLength) {
+        for (j in 0 until simulationParams.genomeLength) {
             // Create a NeuronConnection and assign to the genome
             val inputList = sensorNeurons + innerNeurons
             var outputList = sinkNeurons
@@ -256,18 +341,18 @@ class Simulation(private val worldParams: WorldParams) {
     }
 
     /**
-     * Generates initial entities for Simulation setup and places them in the world
+     * Generates initial entities for domain.Simulation setup and places them in the world
      */
     private fun placeInitialEntities() {
-        for (i in 0 until worldParams.initialPopulation) {
+        for (i in 0 until simulationParams.initialPopulation) {
             val genome = genePool[i]
-            val coord = getRandomNonOccupiedCoordinate()
+            val coordinates = getRandomNonOccupiedCoordinate()
             entities.add(
                 Entity(
                     id = i,
                     genome = genome,
                     color = genome.generateColor(),
-                    coordinates = coord,
+                    coordinates = coordinates,
                     direction = Direction.values()[randomDataProvider.getRandomInteger(4)],
                     fieldOfView = FieldOfView(),
                     age = 0,
@@ -279,18 +364,19 @@ class Simulation(private val worldParams: WorldParams) {
                 )
             )
             // Update world with new entity cell coordinate
-            coord.getCell()?.hasEntity = true
+            coordinates.getCell()?.hasEntity = true
         }
 
         println("Initial entities placed in the World. Number of entities: ${entities.size}")
     }
 
     /**
-     * Generates initial food for Simulation setup and places it in the world
+     * Generates initial food for domain.Simulation setup and places it in the world
      */
     private fun placeInitialFood() {
         val numberOfFood =
-            (FOOD_AVAILABILITY_COEFFICIENT * worldParams.foodAvailability * worldParams.worldSize.toDouble().pow(2.0))
+            (FOOD_AVAILABILITY_COEFFICIENT * simulationParams.foodAvailability * simulationParams.worldSize.toDouble()
+                .pow(2.0))
                 .toInt()
         placeFood(numberOfFood)
 
@@ -306,16 +392,21 @@ class Simulation(private val worldParams: WorldParams) {
      */
     private fun placeFood(numberOfFoodToPlace: Int) {
         var numberOfFoodLeftToPlaceInEnd = 0
-        val foodLocations = (0 until worldParams.worldSize.toDouble().pow(2).toInt())
+        val foodLocations = (0 until simulationParams.worldSize.toDouble().pow(2).toInt())
             .shuffled()
             .take(numberOfFoodToPlace)
 
         for (i in 0 until numberOfFoodToPlace) {
-            val coord = Coordinates(
-                x = foodLocations[i] % worldParams.worldSize, y = foodLocations[i] / worldParams.worldSize
+            val coordinates = Coordinates(
+                x = foodLocations[i] % simulationParams.worldSize, y = foodLocations[i] / simulationParams.worldSize
             )
-            coord.getCell()?.run {
-                if (!hasFood && !hasEntity) hasFood = true else numberOfFoodLeftToPlaceInEnd++
+            coordinates.getCell()?.run {
+                if (!hasFood && !hasEntity) {
+                    hasFood = true
+                    foodCounter++
+                } else {
+                    numberOfFoodLeftToPlaceInEnd++
+                }
             }
         }
 
@@ -328,19 +419,38 @@ class Simulation(private val worldParams: WorldParams) {
      * @return Coordinates - random non-occupied coordinate
      */
     private fun getRandomNonOccupiedCoordinate(): Coordinates {
-        var coord: Coordinates
+        var coordinates: Coordinates
         do {
-            coord = Coordinates(
-                x = randomDataProvider.getRandomInteger(worldParams.worldSize),
-                y = randomDataProvider.getRandomInteger(worldParams.worldSize)
+            coordinates = Coordinates(
+                x = randomDataProvider.getRandomInteger(simulationParams.worldSize),
+                y = randomDataProvider.getRandomInteger(simulationParams.worldSize)
             )
-        } while (coord.getCell()?.hasEntity == true)
-        return coord
+        } while (coordinates.getCell()?.hasEntity == true)
+        return coordinates
     }
 
     private fun Coordinates.getCell() = world[this.x]?.get(this.y)
 
-    companion object {
-        private const val FOOD_AVAILABILITY_COEFFICIENT = 0.4
+    private fun calculateNumberOfSpecies(): Int {
+        // TODO Not implemented
+        return 0
     }
+
+    /**
+     * Updates the selection of 10 Selected Entities (Sample) with 10 random Entities from the current list of Entities
+     */
+    private fun updateSample() {
+        if (entities.isEmpty()) return
+
+        selectedEntityList.value = entities.shuffled().take(10)
+        selectedEntity.value = selectedEntityList.value.firstOrNull()
+    }
+}
+
+enum class SimulationSpeed(speed: Int) {
+    Normal(1),
+    Double(2),
+    Quadruple(4),
+    Octuple(8),
+    x16(16)
 }

@@ -1,17 +1,18 @@
 package data
 
-data class WorldParams(
+data class SimulationParams(
     // W
     val worldSize: Int,
     // E
     val initialPopulation: Int,
+    // F
+    var foodAvailability: Float,
+    // M_r
+    var mutationRate: Float,
+    // N_n
+    val numberOfNeurons: NumberOfNeurons,
     // G
     val genomeLength: Int,
-    // F
-    val foodAvailability: Float,
-    val mutationRate: Float,
-    // N_n
-    val numberOfNeurons: NumberOfNeurons
 )
 
 data class NumberOfNeurons(
