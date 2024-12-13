@@ -1,27 +1,27 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import data.NumberOfNeurons
+import data.SimulationParams
 import data.neuron.getClippedNumberOfNeurons
 import domain.Simulation
-import data.SimulationParams
-import ui.*
+import ui.AppColors
 import ui.analysis_panel.EntitiesList
 import ui.analysis_panel.GeneticInformationPanel
 import ui.controls.SimulationControls
 import ui.info_panel.InformationPanel
-import kotlin.math.cos
+import ui.world.World
 import kotlin.math.pow
-import kotlin.math.sin
 
 fun main() = application {
 
@@ -156,208 +156,196 @@ fun app() {
         Scaffold {
             println("Main.kt app after Scaffold")
             // Top pane with World, Controls, Simulation info and Analysis panel/Statistics panel
-            Row {
-                // Left column containing World and Controls
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(24.dp)
-                ) {
-                    // World
-                    Row(
+            Column {
+                Row(modifier = Modifier.height(900.dp)) {
+                    // Left column containing World and Controls
+                    Column(
                         modifier = Modifier
-                            .padding(top = 20.dp)
+                            .weight(1f)
+                            .padding(24.dp)
                     ) {
-                        Canvas(modifier = Modifier.size(800.dp)) {
-                            drawRect(color = AppColors.AshGray, size = size)
-                        }
+                        // World
+                        World()
                     }
-                    // Controls
-                    Row (
+
+                    // Right column containing Information panel, Analysis panel and Statistics panel
+                    Column(
                         modifier = Modifier
-                            .padding(top = 20.dp)
+                            .weight(1f)
+                            .padding(24.dp)
                     ) {
-                        SimulationControls(simulationParams)
+                        // Simulation Information panel
+                        Row(modifier = Modifier.padding(top = 20.dp)) {
+                            InformationPanel()
+                        }
+
+                        // Analysis panel
+                        Row(modifier = Modifier.padding(top = 20.dp)) {
+                            // Entities List
+                            Column(modifier = Modifier.fillMaxWidth(1f).fillMaxHeight()) {
+                                EntitiesList()
+                            }
+
+                            // Genetic Information Panel
+                            Column(modifier = Modifier.fillMaxWidth(1.8f).fillMaxHeight()) {
+                                GeneticInformationPanel()
+                            }
+                        }
                     }
                 }
 
-                // Right column containing Information panel, Analysis panel and Statistics panel
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(24.dp)
-                ) {
-                    // Simulation Information panel
-                    Row(modifier = Modifier.padding(top = 20.dp)) {
-                        InformationPanel()
-                    }
-
-                    // Analysis panel
-                    Row(modifier = Modifier.padding(top = 20.dp)) {
-                        // Entities List
-                        Column(modifier = Modifier.weight(1f)) {
-                            EntitiesList()
-                        }
-
-                        // Genetic Information Panel
-                        Column(modifier = Modifier.weight(1.4f).widthIn(min = 500.dp)) {
-                            GeneticInformationPanel()
-                        }
-                    }
+                // Simulation Controls
+                Row(modifier = Modifier.height(50.dp).padding(start = 24.dp, end = 24.dp)) {
+                    SimulationControls(simulationParams)
                 }
+
+                /*// Console
+                Row(modifier = Modifier.height(200.dp)) {
+                  // Controls
+                }*/
                 // World Setup input parameters
                 /*  Column(
-                      modifier = Modifier
-                          .width(400.dp)
-                          .padding(24.dp),
-                      horizontalAlignment = Alignment.Start,
-                      verticalArrangement = Arrangement.Top
-                  ) {
-                      // World size TextField
-                      OutlinedTextField(
-                          modifier = Modifier
-                              .size(200.dp, 60.dp)
-                              .padding(0.dp),
-                          value = simulationParams.value.worldSize.toString(),
-                          label = { Text("World size") },
-                          onValueChange = { value ->
-                              onWorldSizeChanged(value)
-                          },
-                          keyboardOptions = KeyboardOptions(
-                              keyboardType = KeyboardType.Number
-                          ),
-                          textStyle = TextStyle(
-                              fontSize = TextUnit(14.0f, TextUnitType.Sp),
-                              color = White
-                          ),
-                          singleLine = true
-                      )
-                      Spacer(modifier = Modifier.height(10.dp))
+              modifier = Modifier
+                  .width(400.dp)
+                  .padding(24.dp),
+              horizontalAlignment = Alignment.Start,
+              verticalArrangement = Arrangement.Top
+          ) {
+              // World size TextField
+              OutlinedTextField(
+                  modifier = Modifier
+                      .size(200.dp, 60.dp)
+                      .padding(0.dp),
+                  value = simulationParams.value.worldSize.toString(),
+                  label = { Text("World size") },
+                  onValueChange = { value ->
+                      onWorldSizeChanged(value)
+                  },
+                  keyboardOptions = KeyboardOptions(
+                      keyboardType = KeyboardType.Number
+                  ),
+                  textStyle = TextStyle(
+                      fontSize = TextUnit(14.0f, TextUnitType.Sp),
+                      color = White
+                  ),
+                  singleLine = true
+              )
+              Spacer(modifier = Modifier.height(10.dp))
 
-                      // Initial Population TextField
-                      OutlinedTextField(
-                          modifier = Modifier
-                              .size(200.dp, 60.dp)
-                              .padding(0.dp),
-                          value = simulationParams.value.initialPopulation.toString(),
-                          label = { Text("Initial population") },
-                          onValueChange = { value ->
-                              onInitialPopulationChanged(value)
-                          },
-                          keyboardOptions = KeyboardOptions(
-                              keyboardType = KeyboardType.Number
-                          ),
-                          textStyle = TextStyle(
-                              fontSize = TextUnit(14.0f, TextUnitType.Sp),
-                              color = White
-                          ),
-                          singleLine = true
-                      )
-                      Spacer(modifier = Modifier.height(10.dp))
+              // Initial Population TextField
+              OutlinedTextField(
+                  modifier = Modifier
+                      .size(200.dp, 60.dp)
+                      .padding(0.dp),
+                  value = simulationParams.value.initialPopulation.toString(),
+                  label = { Text("Initial population") },
+                  onValueChange = { value ->
+                      onInitialPopulationChanged(value)
+                  },
+                  keyboardOptions = KeyboardOptions(
+                      keyboardType = KeyboardType.Number
+                  ),
+                  textStyle = TextStyle(
+                      fontSize = TextUnit(14.0f, TextUnitType.Sp),
+                      color = White
+                  ),
+                  singleLine = true
+              )
+              Spacer(modifier = Modifier.height(10.dp))
 
-                      // Genome Length TextField
-                      OutlinedTextField(
-                          modifier = Modifier
-                              .size(200.dp, 60.dp)
-                              .padding(0.dp),
-                          value = simulationParams.value.genomeLength.toString(),
-                          label = { Text("Genome length") },
-                          onValueChange = { value ->
-                              onGenomeLengthChanged(value)
-                          },
-                          keyboardOptions = KeyboardOptions(
-                              keyboardType = KeyboardType.Number
-                          ),
-                          textStyle = TextStyle(
-                              fontSize = TextUnit(14.0f, TextUnitType.Sp),
-                              color = White
-                          ),
-                          singleLine = true
-                      )
-                      Spacer(modifier = Modifier.height(10.dp))
+              // Genome Length TextField
+              OutlinedTextField(
+                  modifier = Modifier
+                      .size(200.dp, 60.dp)
+                      .padding(0.dp),
+                  value = simulationParams.value.genomeLength.toString(),
+                  label = { Text("Genome length") },
+                  onValueChange = { value ->
+                      onGenomeLengthChanged(value)
+                  },
+                  keyboardOptions = KeyboardOptions(
+                      keyboardType = KeyboardType.Number
+                  ),
+                  textStyle = TextStyle(
+                      fontSize = TextUnit(14.0f, TextUnitType.Sp),
+                      color = White
+                  ),
+                  singleLine = true
+              )
+              Spacer(modifier = Modifier.height(10.dp))
 
-                      // Food Availability TextField
-                      OutlinedTextField(
-                          modifier = Modifier
-                              .size(200.dp, 60.dp)
-                              .padding(0.dp),
-                          value = simulationParams.value.foodAvailability.toString(),
-                          label = { Text("Food availability") },
-                          onValueChange = { value ->
-                              onFoodAvailabilityChanged(value)
-                          },
-                          keyboardOptions = KeyboardOptions(
-                              keyboardType = KeyboardType.Number
-                          ),
-                          textStyle = TextStyle(
-                              fontSize = TextUnit(14.0f, TextUnitType.Sp),
-                              color = White
-                          ),
-                          singleLine = true
-                      )
-                      Spacer(modifier = Modifier.height(10.dp))
+              // Food Availability TextField
+              OutlinedTextField(
+                  modifier = Modifier
+                      .size(200.dp, 60.dp)
+                      .padding(0.dp),
+                  value = simulationParams.value.foodAvailability.toString(),
+                  label = { Text("Food availability") },
+                  onValueChange = { value ->
+                      onFoodAvailabilityChanged(value)
+                  },
+                  keyboardOptions = KeyboardOptions(
+                      keyboardType = KeyboardType.Number
+                  ),
+                  textStyle = TextStyle(
+                      fontSize = TextUnit(14.0f, TextUnitType.Sp),
+                      color = White
+                  ),
+                  singleLine = true
+              )
+              Spacer(modifier = Modifier.height(10.dp))
 
-                      // Mutation Rate TextField
-                      OutlinedTextField(
-                          modifier = Modifier
-                              .size(200.dp, 60.dp)
-                              .padding(0.dp),
-                          value = simulationParams.value.mutationRate.toString(),
-                          label = { Text("Mutation rate") },
-                          onValueChange = { value ->
-                              onMutationRateChanged(value)
-                          },
-                          keyboardOptions = KeyboardOptions(
-                              keyboardType = KeyboardType.Number
-                          ),
-                          textStyle = TextStyle(
-                              fontSize = TextUnit(14.0f, TextUnitType.Sp),
-                              color = White
-                          ),
-                          singleLine = true
-                      )
-                      Spacer(modifier = Modifier.height(10.dp))
+              // Mutation Rate TextField
+              OutlinedTextField(
+                  modifier = Modifier
+                      .size(200.dp, 60.dp)
+                      .padding(0.dp),
+                  value = simulationParams.value.mutationRate.toString(),
+                  label = { Text("Mutation rate") },
+                  onValueChange = { value ->
+                      onMutationRateChanged(value)
+                  },
+                  keyboardOptions = KeyboardOptions(
+                      keyboardType = KeyboardType.Number
+                  ),
+                  textStyle = TextStyle(
+                      fontSize = TextUnit(14.0f, TextUnitType.Sp),
+                      color = White
+                  ),
+                  singleLine = true
+              )
+              Spacer(modifier = Modifier.height(10.dp))
 
-                      // Number of Neurons
-                      Slider(
-                          modifier = Modifier
-                              .width(200.dp)
-                              .padding(0.dp),
-                          value = simulationParams.value.numberOfNeurons.total.toFloat(),
-                          onValueChange = { value ->
-                              updateNumberOfNeurons(
-                                  simulationParams.value.numberOfNeurons.copy(
-                                      total = value.toInt(),
-                                  )
-                              )
-                          },
-                          onValueChangeFinished = {
-                              onNumberOfNeuronsChanged()
-                          },
-                          enabled = true,
-                          valueRange = 1.0f..53.0f,
-                          colors = SliderDefaults.colors()
+              // Number of Neurons
+              Slider(
+                  modifier = Modifier
+                      .width(200.dp)
+                      .padding(0.dp),
+                  value = simulationParams.value.numberOfNeurons.total.toFloat(),
+                  onValueChange = { value ->
+                      updateNumberOfNeurons(
+                          simulationParams.value.numberOfNeurons.copy(
+                              total = value.toInt(),
+                          )
                       )
-                      Text(
-                          fontSize = 12.sp,
-                          textAlign = TextAlign.Start,
-                          text = getNumberOfNeuronsText(simulationParams.value)
-                      )
-                      Spacer(modifier = Modifier.height(10.dp))
-                  }*/
+                  },
+                  onValueChangeFinished = {
+                      onNumberOfNeuronsChanged()
+                  },
+                  enabled = true,
+                  valueRange = 1.0f..53.0f,
+                  colors = SliderDefaults.colors()
+              )
+              Text(
+                  fontSize = 12.sp,
+                  textAlign = TextAlign.Start,
+                  text = getNumberOfNeuronsText(simulationParams.value)
+              )
+              Spacer(modifier = Modifier.height(10.dp))
+          }*/
             }
 
-            // Bottom pane with Console Output
-            Row(modifier = Modifier.height(50.dp)) {
 
-            }
         }
     }
-}
-
-fun offsetAt(center: Offset, index: Int, total: Int, radius: Float): Offset {
-    val angle = 2 * Math.PI * index / total
-    val x = center.x + radius * cos(angle).toFloat()
-    val y = center.y + radius * sin(angle).toFloat()
-    return Offset(x, y)
 }

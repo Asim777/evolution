@@ -23,16 +23,19 @@ object Simulation : ISimulation {
     private val entities = mutableListOf<Entity>()
 
     // Simulation stats state. Only update once at the end of every Simulation step
-    var timeElapsed : MutableState<Int> = mutableStateOf(0)
-    var numberOfSpecies : MutableState<Int> = mutableStateOf(0)
-    var population : MutableState<Int> = mutableStateOf(0)
-    var numberOfFood : MutableState<Int> = mutableStateOf(0)
+    var timeElapsed: MutableState<Int> = mutableStateOf(0)
+    var numberOfSpecies: MutableState<Int> = mutableStateOf(0)
+    var population: MutableState<Int> = mutableStateOf(0)
+    var numberOfFood: MutableState<Int> = mutableStateOf(0)
+
     // TODO: Update from user input
-    var simulationSpeed : MutableState<SimulationSpeed> = mutableStateOf(SimulationSpeed.Normal)
+    var simulationSpeed: MutableState<SimulationSpeed> = mutableStateOf(SimulationSpeed.Normal)
 
     // State for entities and selected item
-    var selectedEntityList : MutableState<List<Entity>> = mutableStateOf(emptyList())
-    var selectedEntity : MutableState<Entity?> = mutableStateOf(null)
+    var selectedEntityList: MutableState<List<Entity>> = mutableStateOf(emptyList())
+    var selectedEntity: MutableState<Entity?> = mutableStateOf(null)
+    var selectedGene: MutableState<Gene?> = mutableStateOf(null)
+    var selectedNeuron: MutableState<Neuron?> = mutableStateOf(null)
 
     private var simulationParams: SimulationParams = SimulationParams(
         worldSize = 1000,
@@ -174,79 +177,50 @@ object Simulation : ISimulation {
         // Create Neurons
         val neurons = getNeurons(simulationParams.numberOfNeurons.total)
 
-        val sensorNeurons = neurons.filter { it.category is SensorCategory }
-        val innerNeurons = neurons.filter { it.category is InnerCategory }
-        val sinkNeurons = neurons.filter { it.category is SinkCategory }
+        val sensorNeurons = neurons.filterIsInstance<SensorNeuron>()
+        val innerNeurons = neurons.filterIsInstance<InnerNeuron>()
+        val sinkNeurons = neurons.filterIsInstance<SinkNeuron>()
 
         // Create Gene pool
         for (i in 0 until simulationParams.initialPopulation) {
             val neuronConnections = getNeuronConnections(sensorNeurons, innerNeurons, sinkNeurons)
             val genes = mutableListOf<Gene>()
 
-            // TODO: Implement weight logic
-            val weight = randomDataProvider.getRandomFloat(2)
-
             neuronConnections.forEach { connection ->
 
-                // If we have a direct connection between a Sensor and Sink, we immediately go ahead and create the Gene
+                // If we have a direct connection between a Sensor and Sink, we create a Gene and add it if it doesn't
+                // already exist
                 if (connection.input is SensorNeuron && connection.output is SinkNeuron) {
-                    val directConnectionGene = getNewGeneForDirectConnection(connection, genes, weight)
-                    if (directConnectionGene != null) genes.add(directConnectionGene)
+                    val newGene = Gene(
+                        sensors = listOf(connection.input),
+                        inner = null,
+                        sink = connection.output
+                    )
+
+                    if (!genes.contains(newGene)) genes.add(newGene)
                 }
 
                 // If it is a connection between Sensor and Inner
                 if (connection.input is SensorNeuron && connection.output is InnerNeuron) {
-                    // We try to find if there is another Gene connecting this Inner Neuron to some Sink. If we
-                    // find it, this is our Gene
-                    val existingGene = getExistingGeneForSensorInnerConnection(connection, neuronConnections, genes)
-                    if (existingGene != null) {
-                        genes.remove(existingGene)
-                        genes.add(existingGene.copy(sensors = existingGene.sensors + connection.input))
-                    } else {
-                        // If there is not existing Gene connecting this Inner Neuron to some Sink, we look if there is
-                        // some unused connection that we can use to create a new Gene
-                        neuronConnections.find { it.input == connection.output }?.let { complementaryConnection ->
-                            genes.add(
-                                Gene(
-                                    sensors = listOf(connection.input),
-                                    inner = connection.output,
-                                    sink = complementaryConnection.output,
-                                    weight = weight
-                                )
-                            )
-                        }
-                    }
-                }
+                    // Find all the connections between this Inner and any Sensors. We want to include all of them in
+                    // one Gene
+                    val allSensors = neuronConnections
+                        .filter { it.input is SensorNeuron && it.output == connection.output }
+                        .map { it.input }
 
-                // If it is a connection between Inner and Sink
-                if (connection.input is InnerNeuron && connection.output is SinkNeuron) {
+                    // Find all the connections between this Inner and any Sinks. We want to create a separate Gene for
+                    // each of them with the list of Sensors and this Inner Neuron
+                    val allSinks = neuronConnections
+                        .filter { it.input == connection.output && it.output is SinkNeuron }
+                        .map { it.output as SinkNeuron}
 
-                    // We try to find if there is another Gene connecting this Inner Neuron to some Sensor. If
-                    // we find it, we create a new Gene adding existing Gene's inputs as Sensors feeding our
-                    // Inner-Sink connection
-                    val existingGene = genes.find { it.inner == connection.input }
-                    if (existingGene != null) {
-                        genes.add(
-                            Gene(
-                                sensors = existingGene.sensors,
-                                inner = connection.input,
-                                sink = connection.output,
-                                weight = weight
-                            )
+                    allSinks.forEach { sink ->
+                        val geneToAdd = Gene(
+                            sensors = allSensors,
+                            inner = connection.output,
+                            sink = sink
                         )
-                    } else {
-                        // If there is no Gene connecting this Inner Neuron to any Sensor, we look for any unused
-                        // Connection doing the same
-                        neuronConnections.find { it.output == connection.input }?.let { complementaryConnection ->
-                            genes.add(
-                                Gene(
-                                    sensors = listOf(complementaryConnection.input),
-                                    inner = connection.input,
-                                    sink = connection.output,
-                                    weight = weight
-                                )
-                            )
-                        }
+                        if (!genes.contains(geneToAdd)) genes.add(geneToAdd)
                     }
                 }
             }
@@ -269,75 +243,43 @@ object Simulation : ISimulation {
         val neuronConnections = mutableListOf<NeuronConnection>()
 
         for (j in 0 until simulationParams.genomeLength) {
-            // Create a NeuronConnection and assign to the genome
-            val inputList = sensorNeurons + innerNeurons
-            var outputList = sinkNeurons
-
-            val input = inputList[randomDataProvider.getRandomInteger(inputList.size)]
-            // If the input is a sensor, we can connect to both inner and sink neurons, otherwise, if input is
-            // inner, then we connect only to sink neurons
-            if (input is SensorNeuron) {
-                outputList = outputList + innerNeurons
-            }
-            val output = outputList[randomDataProvider.getRandomInteger(outputList.size)]
-
-            if (input is InputNeuron && output is OutputNeuron) {
-                neuronConnections.add(
-                    NeuronConnection(input = input, output = output)
-                )
-            }
+            val connection = generateNeuronConnection(sensorNeurons, innerNeurons, sinkNeurons, neuronConnections)
+            neuronConnections.add(connection)
         }
         return neuronConnections
     }
 
-    private fun getNewGeneForDirectConnection(
-        neuronConnection: NeuronConnection,
-        genes: List<Gene>,
-        weight: Float
-    ): Gene? {
-        // TODO: This shouldn't be possible to being with. NeuronConnections should not repeat
-        // If there is an existing Gene connecting the same Sensor and Sink we don't create a new Gene
-        // TODO: Give it more thought. Maybe we should keep a Gene with most potential instead
-        if (
-            genes.any { gene ->
-                gene.sensors.any { it == neuronConnection.input } && gene.sink == neuronConnection.output
-            }
-        ) return null
-
-        return Gene(
-            sensors = listOf(neuronConnection.input),
-            inner = null,
-            sink = neuronConnection.output,
-            weight = weight
-        )
+    private fun generateNeuronConnection(
+        sensorNeurons: List<Neuron>,
+        innerNeurons: List<Neuron>,
+        sinkNeurons: List<Neuron>,
+        neuronConnections: MutableList<NeuronConnection>
+    ): NeuronConnection {
+        var connectionToAdd: NeuronConnection
+        do {
+            connectionToAdd = getRandomNeuronConnection(sensorNeurons, innerNeurons, sinkNeurons)
+        } while (neuronConnections.any { it == connectionToAdd })
+        return connectionToAdd
     }
 
-    private fun getExistingGeneForSensorInnerConnection(
-        neuronConnection: NeuronConnection,
-        neuronConnections: MutableList<NeuronConnection>,
-        genes: MutableList<Gene>
-    ): Gene? {
-        var existingGene: Gene? = null
-        // If we already have any Gene connecting the same Sensor and Inner Neurons, we don't create a new Gene
-        if (
-            genes.any { gene ->
-                gene.sensors.any { it == neuronConnection.input } && gene.inner == neuronConnection.output
-            }
-        ) {
-            return null
-        }
+    private fun getRandomNeuronConnection(
+        sensorNeurons: List<Neuron>,
+        innerNeurons: List<Neuron>,
+        sinkNeurons: List<Neuron>
+    ) : NeuronConnection {
+        // Create a NeuronConnection and assign to the genome
+        val inputList = sensorNeurons + innerNeurons
+        var outputList = sinkNeurons
 
-        neuronConnections
-            .find { it.input == neuronConnection.output }
-            ?.let { adjacentConnection: NeuronConnection ->
-                // We try to find an existing Gene that has the same Inner and Sink Neurons, but gets fed by
-                // a  different Sensor. In this case we don't want to create a new Gene, but to add this
-                // Connection to the existing Gene
-                existingGene = genes.find {
-                    it.inner == neuronConnection.output && it.sink == adjacentConnection.output
-                }
-            }
-        return existingGene
+        val input = inputList[randomDataProvider.getRandomInteger(inputList.size)]
+        // If the input is a sensor, we can connect to both inner and sink neurons, otherwise, if input is
+        // inner, then we connect only to sink neurons
+        if (input is SensorNeuron) {
+            outputList = outputList + innerNeurons
+        }
+        val output = outputList[randomDataProvider.getRandomInteger(outputList.size)]
+
+        return NeuronConnection(input = input as InputNeuron, output = output as OutputNeuron)
     }
 
     /**
@@ -356,10 +298,11 @@ object Simulation : ISimulation {
                     direction = Direction.values()[randomDataProvider.getRandomInteger(4)],
                     fieldOfView = FieldOfView(),
                     age = 0,
-                    energy = 0,
+                    health = 100,
+                    energy = 100,
                     hunger = 0,
                     matingDrive = 0,
-                    generation = 0,
+                    generation = 1,
                     ancestralMutationCount = 0
                 )
             )

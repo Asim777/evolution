@@ -2,12 +2,25 @@ package data.neuron
 
 import data.*
 import data.entity.*
-import data.neuron.sensor.entity.EntityImmediateFront
+import data.neuron.inner.*
+import data.neuron.sensor.distance.DistanceEndOfWorld
+import data.neuron.sensor.distance.DistanceEntity
+import data.neuron.sensor.distance.DistanceFood
+import data.neuron.sensor.distance.DistanceObject
+import data.neuron.sensor.end_of_world.EndOfWorldBehind
 import data.neuron.sensor.end_of_world.EndOfWorldFront
-import data.neuron.sensor.food.FoodImmediateFront
+import data.neuron.sensor.end_of_world.EndOfWorldLeft
+import data.neuron.sensor.end_of_world.EndOfWorldRight
+import data.neuron.sensor.entity.*
+import data.neuron.sensor.entity_density.EntityDensityAhead
+import data.neuron.sensor.entity_density.EntityDensityFront
+import data.neuron.sensor.entity_density.EntityDensityNeighborhood
+import data.neuron.sensor.food.*
+import data.neuron.sensor.genetic_similarity.*
 import data.neuron.sink.eat.Eat
 import data.neuron.sink.mate.Mate
-import data.neuron.sink.movement.MoveForward
+import data.neuron.sink.movement.*
+import data.neuron.sink.turn.TurnBack
 import data.neuron.sink.turn.TurnLeft
 import data.neuron.sink.turn.TurnRight
 import java.lang.IllegalArgumentException
@@ -20,6 +33,7 @@ import java.lang.IllegalArgumentException
 interface Neuron {
     val id: String
     val category: NeuronCategory
+    val activationGroup: ActivationGroup
 }
 
 // region Input, Output Neurons
@@ -31,6 +45,7 @@ interface Neuron {
  */
 interface InputNeuron : Neuron {
     val value: Float
+
     /*val type: NeuronType*/
     fun evaluate(entity: Entity, worldSize: Int)
 }
@@ -48,7 +63,7 @@ interface OutputNeuron : Neuron {
      * with mutually exclusive actions, for instance, [MoveForward] and [MoveLeft], then the Neuron with the highest
      * excitementValue will get its action executed
      */
-    fun getExcitementValue() : Float
+    fun getExcitementValue(): Float
 }
 // endregion
 
@@ -68,6 +83,7 @@ abstract class SensorNeuron(
     // TODO: We probably don't need to save value as property. We get a newly calculated value every
     //  time evaluate is called
     override val value: Float,
+    override val activationGroup: ActivationGroup
     /*override val type: NeuronType*/
 ) : InputNeuron
 
@@ -86,6 +102,7 @@ abstract class InnerNeuron(
     override val category: InnerCategory,
     override val value: Float,
     override val sources: Array<InputNeuron>,
+    override val activationGroup: ActivationGroup
     /*override val type: NeuronType*/
 ) : InputNeuron, OutputNeuron
 
@@ -100,7 +117,8 @@ abstract class InnerNeuron(
 abstract class SinkNeuron(
     override val id: String,
     override val category: SinkCategory,
-    override val sources: Array<InputNeuron>
+    override val sources: Array<InputNeuron>,
+    override val activationGroup: ActivationGroup
 ) : OutputNeuron {
     override fun getExcitementValue(): Float = sources.map { it.value }.sum()
 }
@@ -113,89 +131,103 @@ abstract class SinkNeuron(
     Numerical
 }*/
 
-fun getNeurons(numberOfNeurons: Int): List<Neuron> =
+enum class ActivationGroup(value: Int) {
+    AG9(9),
+    AG19(19),
+    AG28(28),
+    AG35(35),
+    AG43(43),
+    AG50(50),
+    AG57(57)
+}
+
+fun getNeurons(numberOfNeurons: Int = 0): List<Neuron> =
     when (numberOfNeurons) {
-        9 -> listOf(
-            EndOfWorldFront(),
-            EntityImmediateFront(),
-            FoodImmediateFront(),
-            MoveForward(),
-            TurnRight(),
-            TurnLeft(),
-            Eat(),
-            Mate()
-        )
-
-        19 -> getNeurons(9) + listOf(
-            /* DistanceObject(),
-             EntityImmediateLeft(),
-             EntityImmediateRight(),
-             FoodImmediateLeft(),
-             FoodImmediateRight(),
-             EntityDensityAhead(),
-             And(),
-             Or(),
-             Less05(),
-             More05()*/
-        )
-
-        28 -> getNeurons(19) + listOf(
-            /*DistanceFood(),
-            FoodAhead(),
-            EntityFront(),
-            FoodFront(),
-            FoodNeighborhood(),
-            EntityDensityFront(),
-            GeneticSimilarityAhead(),
-            Not(),
-            MoveRandomly()*/
-        )
-
-        35 -> getNeurons(28) + listOf(
-            /*EntityDensityNeighborhood(),
-            GeneticSimilarityFront(),
-            Xor(),
-            More025(),
-            More075(),
-            MoveBack(),
-            TurnBack()*/
-        )
-
-        43 -> getNeurons(35) + listOf(
-            /*DistanceEndOfWorld(),
-            DistanceEntity(),
-            FoodLeft(),
-            FoodRight(),
-            FoodBehind(),
-            GeneticSimilarityNeighborhood(),
-            Less025(),
-            Less075()*/
-        )
-
-        50 -> getNeurons(43) + listOf(
-            /*EntityLeft(),
-            EntityRight(),
-            EntityBehind(),
-            More09(),
-            Less01(),
-            MoveRight(),
-            MoveLeft()*/
-        )
-
-        57 -> getNeurons(50) + listOf(
-            /*EndOfWorldLeft(),
-            EndOfWorldRight(),
-            EndOfWorldBehind(),
-            GeneticSimilarityLeft(),
-            GeneticSimilarityRight(),
-            GeneticSimilarityBehind(),
-            EntityNeighborhood*/
-        )
-
+        0 -> getAllNeurons()
+        9 -> getAllNeurons().filter { it.activationGroup == ActivationGroup.AG9 }
+        19 -> getNeurons(9) + getAllNeurons().filter { it.activationGroup == ActivationGroup.AG19 }
+        28 -> getNeurons(19) + getAllNeurons().filter { it.activationGroup == ActivationGroup.AG28 }
+        35 -> getNeurons(28) + getAllNeurons().filter { it.activationGroup == ActivationGroup.AG35 }
+        43 -> getNeurons(35) + getAllNeurons().filter { it.activationGroup == ActivationGroup.AG43 }
+        50 -> getNeurons(43) + getAllNeurons().filter { it.activationGroup == ActivationGroup.AG50 }
+        57 -> getNeurons(50) + getAllNeurons().filter { it.activationGroup == ActivationGroup.AG57 }
         else -> {
             throw IllegalArgumentException("Wrong number of neurons inputed")
         }
     }
+
+fun getAllNeurons() =
+    listOf(
+        //9
+        EndOfWorldFront(),
+        EntityImmediateFront(),
+        FoodImmediateFront(),
+        MoveForward(),
+        TurnRight(),
+        TurnLeft(),
+        Eat(),
+        Mate(),
+
+        //19
+        DistanceObject(),
+        EntityImmediateLeft(),
+        EntityImmediateRight(),
+        FoodImmediateLeft(),
+        FoodImmediateRight(),
+        EntityDensityAhead(),
+        And(),
+        Or(),
+        Less05(),
+        More05(),
+
+        //28
+        DistanceFood(),
+        FoodAhead(),
+        EntityFront(),
+        FoodFront(),
+        FoodNeighborhood(),
+        EntityDensityFront(),
+        GeneticSimilarityAhead(),
+        Not(),
+        MoveRandomly(),
+
+        //35
+        EntityDensityNeighborhood(),
+        GeneticSimilarityFront(),
+        Xor(),
+        More025(),
+        More075(),
+        MoveBack(),
+        TurnBack(),
+
+        //43
+        DistanceEndOfWorld(),
+        DistanceEntity(),
+        FoodLeft(),
+        FoodRight(),
+        FoodBehind(),
+        GeneticSimilarityNeighborhood(),
+        Less025(),
+        Less075(),
+
+        //50
+        EntityLeft(),
+        EntityRight(),
+        EntityBehind(),
+        More09(),
+        Less01(),
+        MoveRight(),
+        MoveLeft(),
+
+        //57
+        EndOfWorldLeft(),
+        EndOfWorldRight(),
+        EndOfWorldBehind(),
+        GeneticSimilarityLeft(),
+        GeneticSimilarityRight(),
+        GeneticSimilarityBehind(),
+        EntityNeighborhood()
+    )
 
 fun getNeuronDistributionByCategory(numberOfNeurons: Int): NumberOfNeurons =
     getNeurons(numberOfNeurons)
@@ -212,7 +244,7 @@ fun getNeuronDistributionByCategory(numberOfNeurons: Int): NumberOfNeurons =
 
 fun getClippedNumberOfNeurons(numberOfNeurons: Int) = when (numberOfNeurons) {
     in 0..9 -> {
-        getNeuronDistributionByCategory(9)
+        getNeuronDistributionByCategory(11)
     }
 
     in 10..19 -> {
@@ -243,3 +275,11 @@ fun getClippedNumberOfNeurons(numberOfNeurons: Int) = when (numberOfNeurons) {
         throw IllegalArgumentException("Wrong number of neurons inputed")
     }
 }
+
+/*
+fun Neuron.toUiModel() = NeuronUiModel(
+    name = this.id,
+    explanation = this.,
+    isActive = true,
+    excitementValue = if (this is InputNeuron) this.value
+)*/

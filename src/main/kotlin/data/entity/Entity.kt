@@ -14,6 +14,15 @@ data class Entity(
     var direction: Direction,
     var fieldOfView: FieldOfView,
     var age: Int,
+    /**
+     * Health is a measure of Entity's vitality. When Health reaches 0, Entity dies. Health is influenced by many 
+     * modifiers, such as Hunger, MatingDrive, Age and being attacked.  
+     */
+    var health: Int,
+    /**
+     * Energy is a measure of the Entity's stamina and is used to perform various actions.
+     * It decreases as actions are performed and regenerates through resting.
+     */
     var energy: Int,
     /**
      * Hunger is a measure of Entity's desire to eat. 100 means starving, 0 means full

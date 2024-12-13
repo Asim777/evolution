@@ -1,12 +1,17 @@
 package ui.controls
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CornerBasedShape
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import data.SimulationParams
@@ -21,12 +26,15 @@ fun SimulationControls(simulationParams: SimulationParams) {
         contentColor = AppColors.Beige
     )
 
+    Spacer(modifier = Modifier.height(12.dp))
+
     Row(
         modifier = Modifier
-            .padding(top = 40.dp)
+            .border(2.dp, SolidColor(AppColors.AshGray), RectangleShape)
             .fillMaxWidth(),
-        verticalAlignment = Alignment.Bottom
+        verticalAlignment = Alignment.CenterVertically
     ) {
+
         // Setup
         val setupIcon = painterResource("drawables/setup.svg")
 
@@ -48,7 +56,7 @@ fun SimulationControls(simulationParams: SimulationParams) {
         // Speed down
         val speedDownIcon = painterResource("drawables/speed_down.svg")
         Button(
-            modifier = Modifier.size(48.dp, 48.dp),
+            modifier = Modifier.size(48.dp),
             colors = buttonColors,
             onClick = {}
         ) {
@@ -63,7 +71,7 @@ fun SimulationControls(simulationParams: SimulationParams) {
         // Run
         val runIcon = painterResource("drawables/run.svg")
         Button(
-            modifier = Modifier.size(48.dp, 48.dp),
+            modifier = Modifier.size(48.dp),
             colors = buttonColors,
             onClick = {
                 Simulation.setup(simulationParams)
@@ -81,7 +89,7 @@ fun SimulationControls(simulationParams: SimulationParams) {
         // Speed up
         val speedUpIcon = painterResource("drawables/speed_up.svg")
         Button(
-            modifier = Modifier.size(48.dp, 48.dp),
+            modifier = Modifier.size(48.dp),
             colors = buttonColors,
             onClick = {
                 Simulation.setSpeed(SimulationSpeed.Double)
@@ -98,7 +106,7 @@ fun SimulationControls(simulationParams: SimulationParams) {
         // Sample
         val sampleIcon = painterResource("drawables/sample.svg")
         Button(
-            modifier = Modifier.size(48.dp, 48.dp),
+            modifier = Modifier.size(48.dp),
             colors = buttonColors,
             onClick = {
                 Simulation.onSampleClicked()
@@ -115,7 +123,7 @@ fun SimulationControls(simulationParams: SimulationParams) {
         // Statistics
         val statisticsIcon = painterResource("drawables/statistics.svg")
         Button(
-            modifier = Modifier.size(48.dp, 48.dp),
+            modifier = Modifier.size(48.dp),
             colors = buttonColors,
             onClick = {}
         ) {
@@ -125,12 +133,12 @@ fun SimulationControls(simulationParams: SimulationParams) {
             )
         }
 
-        Spacer(modifier = Modifier.weight(1.0f))
+        Spacer(modifier = Modifier.weight(1f, true))
 
         // Select random Entity
         val selectEntityIcon = painterResource("drawables/select.svg")
         Button(
-            modifier = Modifier.size(48.dp, 48.dp),
+            modifier = Modifier.size(48.dp),
             colors = buttonColors,
             onClick = {}
         ) {
@@ -145,7 +153,7 @@ fun SimulationControls(simulationParams: SimulationParams) {
         // Add Entity to Observation
         val addToObservationIcon = painterResource("drawables/add_to_observation.svg")
         Button(
-            modifier = Modifier.size(48.dp, 48.dp),
+            modifier = Modifier.size(48.dp),
             colors = buttonColors,
             onClick = {}
         ) {

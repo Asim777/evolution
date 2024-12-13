@@ -6,4 +6,4 @@ class Mate(
     id: String = "M",
     category: SinkCategory = SinkCategory.Mate,
     override val sources: Array<InputNeuron> = arrayOf()
-) : SinkNeuron(id, category, sources)
+) : SinkNeuron(id, category, sources, ActivationGroup.AG9)

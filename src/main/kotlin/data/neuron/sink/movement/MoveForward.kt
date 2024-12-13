@@ -6,4 +6,4 @@ class MoveForward(
     id: String = "Mf",
     category: SinkCategory = SinkCategory.Movement,
     override val sources: Array<InputNeuron> = arrayOf()
-) : SinkNeuron(id, category, sources)
+) : SinkNeuron(id, category, sources, ActivationGroup.AG9)

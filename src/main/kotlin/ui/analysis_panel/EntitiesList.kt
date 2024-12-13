@@ -26,6 +26,7 @@ fun EntitiesList() {
                 isSelected = entity.id == Simulation.selectedEntity.value?.id,
                 onClick = {
                     Simulation.selectedEntity.value = entity
+                    Simulation.selectedGene.value = null
                 },
                 onDelete = { entityToRemove ->
                     Simulation.selectedEntityList.value =

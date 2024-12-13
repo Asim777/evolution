@@ -1,22 +1,22 @@
 package data.neuron.sensor.entity
 
 import data.entity.Entity
+import data.entity.getFront
 import data.entity.getImmediateLeft
+import data.neuron.ActivationGroup
 import data.neuron.NeuronCategory
+import data.neuron.SensorCategory
+import data.neuron.SensorNeuron
 
-/*
 class EntityImmediateLeft(
-    override var value: Boolean = false,
     id: String = "Eil",
-    category: NeuronCategory = NeuronCategory.Sensor(
-        subCategory = NeuronCategory.SensorCategory.Entity
-    )
-) : LogicalInputNeuron(value, id, category) {
+    category: SensorCategory = SensorCategory.Entity,
+    override var value: Float = 0.0f
+) : SensorNeuron(id, category, value, ActivationGroup.AG57) {
     // TODO: Write tests for method
-    override fun evaluate(entity: Entity, worldSize: Int): Boolean {
-        value = with(entity) {
-            fieldOfView.getImmediateLeft()?.hasEntity ?: false
-        }
-        return value
+    override fun evaluate(entity: Entity, worldSize: Int) {
+        val isEntityImmediateLeft = entity.fieldOfView.getImmediateLeft()?.hasEntity == true
+        value = 0f
     }
-}*/
+}
+

@@ -11,4 +11,5 @@ object AppColors {
     val TimberWorld = Color(0xFFCED2C5)
     val Finn = Color(0xFF4F2E61)
     val Raspberry = Color(0xFFCB3357)
+    val FireEngineRed = Color(0xFFDB1230)
 }

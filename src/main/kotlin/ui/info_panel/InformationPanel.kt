@@ -23,19 +23,19 @@ fun InformationPanel() {
         // Left column
         Column(
             Modifier.weight(0.5f, true)
-                .padding(start = 20.dp, top = 20.dp, bottom = 20.dp)
+                .padding(start = 20.dp, top = 20.dp)
         ) {
             Text(color = AppColors.Beige, text = "Time elapsed: ${Simulation.timeElapsed.value}")
-            Text(color = AppColors.Beige, text = "Population: ${Simulation.population.value}")
-            Text(color = AppColors.Beige, text = "Food: ${Simulation.numberOfFood.value}")
-            Text(color = AppColors.Beige, text = "Species: ${Simulation.numberOfSpecies.value}")
+            Text(color = AppColors.Beige, text = "Simulation speed: ${Simulation.simulationSpeed.value}")
         }
         // Right column
         Column(
             Modifier.weight(0.5f, true)
-                .padding(end = 20.dp, top = 20.dp, bottom = 20.dp)
+                .padding(end = 20.dp, top = 20.dp)
         ) {
-            Text(color = AppColors.Beige, text = "Simulation speed: ${Simulation.simulationSpeed.value}")
+            Text(color = AppColors.Beige, text = "Population: ${Simulation.population.value}")
+            Text(color = AppColors.Beige, text = "Food: ${Simulation.numberOfFood.value}")
+            Text(color = AppColors.Beige, text = "Species: ${Simulation.numberOfSpecies.value}")
         }
     }
 }

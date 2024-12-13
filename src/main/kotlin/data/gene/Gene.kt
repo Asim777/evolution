@@ -12,28 +12,18 @@ data class Gene(
     var sensors: List<InputNeuron>,
     val inner: Neuron?,
     val sink: OutputNeuron,
-    // TODO: Figure out how to use the weight
-    val weight: Float
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+    val name: String = sensors.joinToString(",") { it.id } + "_${inner?.id ?: ""}_${sink.id}",
+)
 
-        other as Gene
+fun Gene.containsNeuron(neuronName: String) =
+    sensors.any {it.id == neuronName} || inner?.id == neuronName || sink.id == neuronName
 
-        if (weight != other.weight) return false
-        if (sensors != other.sensors) return false
-        if (inner != other.inner) return false
-        if (sink != other.sink) return false
-
-        return true
+fun Gene.getNeuron(neuronName: String) : Neuron? {
+    var neuron: Neuron? = sensors.find {it.id == neuronName}
+    if (neuron == null && inner?.id == neuronName) {
+        neuron = inner
+    } else if (neuron == null && sink.id == neuronName) {
+        neuron = sink
     }
-
-    override fun hashCode(): Int {
-        var result = weight.hashCode()
-        result = 31 * result + sensors.hashCode()
-        result = 31 * result + (inner?.hashCode() ?: 0)
-        result = 31 * result + sink.hashCode()
-        return result
-    }
+    return neuron
 }
